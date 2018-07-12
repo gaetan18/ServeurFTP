@@ -10,6 +10,7 @@
 #include 	<string.h>
 #include	<unistd.h>
 #include	<fcntl.h>
+#include	"functionClient.c"
 
 #define	max(a,b)	((a) > (b) ? (a) : (b))
 #define MAXLINE	500
@@ -50,8 +51,40 @@ main(int argc, char **argv)
 		}
 	else fd=STDIN_FILENO;
 
+
+	char input[100];
+
+	while(1) {
+				printf("votre Commande : ");
+				scanf("%[^\n]%*c", input);
+				if(!strcmp(input, "exit")) {
+						break;
+				} else if(commandLocal(input)) {
+					executCommandLocal(input);
+				} /*else if (is_remote_cmd(input)) {
+					sendMessage(serverId, input);
+
+					if(!strcmp(input, "rls")) {
+						char waitInput[1000];
+						while (strcmp(waitInput, "\n")) {
+							printf("\n");
+							waitMessage(serverId, waitInput);
+						}
+						printf("\n");
+					} else if(!strcmp(input, "rcd")) {
+						char waitInput[50];
+						waitMessage(serverId, waitInput);
+					}
+				} */else if (strcmp(input, "")) {
+					printf("UNKNOW CMD : %s\n", input);
+				}
+				printf("\n");
+				}
+
+
+/*
 	str_cli(fd, sockfd);
-	exit(0);
+	exit(0);*/
 }
 
 void str_cli(int fd, int sockfd)
