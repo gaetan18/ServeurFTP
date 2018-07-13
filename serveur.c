@@ -10,11 +10,14 @@
 #include <errno.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include "functionServer.c"
 
 int totaldonnees=0;
 int state =0;
 char *login =NULL;
-int isExist(char*,int);
+char *identifiant =NULL;
+char *pswd =NULL;
+int err = 0;
 void str_echo(int);
 int main(int argc,char **argv)
 {
@@ -50,6 +53,7 @@ listen(lfd,10);
 for(;;)
 	{
 	clilen=sizeof(cliaddr);
+	printf("cliaddr - -> %d",cliaddr.sin_addr.s_addr);
 	if((cfd=accept(lfd,(struct sockaddr *) &cliaddr,&clilen))<0)
 		{
 		printf("erreur accept\n");
@@ -69,14 +73,18 @@ for(;;)
 void  str_echo(int sockfd)
 {
 	int n =0;
-	char buf[100]={'\0'},final[150];
+	char buf[500]={'\0'},final[150];
 	const char ch[1] ="\0";
 	char *tok=NULL;
 	char *dest=NULL;
+	printf("sockfd %d",sockfd);
+	printf("buff %s",buf);
+	int nbyte = strlen(buf);
 	while((n=read(sockfd,buf,500))>0)
 	{
 		printf("n = %d\n",n);
-		printf("BUF ------- > %s\n",buf);
+		printf("BUF ------- > %s \n",buf);
+		printf("LEN ---> %d \n",(int)strlen(buf));
 		tok = malloc(sizeof(char) * n);
 		tok = strtok(buf,ch);
 		printf("\n\ntoken -> %s taille -> %d\n",tok,(int)strlen(tok));
@@ -86,33 +94,55 @@ void  str_echo(int sockfd)
 		strncpy(dest,tok,strlen(tok)-1);
 		if(tok != NULL){
 			printf("tok est alloué \n");
-			tok = NULL;
 		}
 		printf("\nstrcpy -> dest -> %s taille-> %d\n",dest,(int)strlen(dest));
 		if(tok !=NULL && dest !=NULL){
 			if(strcmp(dest,"BONJ") == 0 && state == 0){
 				printf("client a envoye - -%s\n",buf);
-				write(sockfd,"WHO",n);
+				write(sockfd,"WHO",3);
+				reinitialiseBuf(buf);
 				++state;
 			}  
 			else if(state == 1){
 				printf("client a envoye - - - %s\n",dest);
-				login = malloc(sizeof(char) * (strlen(dest)));
-				login = dest;
-				write(sockfd,"PASSWD",n);
+				identifiant = malloc(sizeof(char) * (strlen(dest)));
+				identifiant = dest;
+				write(sockfd,"PASSWD",6);
+				reinitialiseBuf(buf);
 				++state;
 			} 
 			else if(state == 2){
 				printf("client a envoye - - - %s\n",dest);
-				login = malloc(sizeof(char) * (strlen(dest) + 1));
+				pswd = malloc(sizeof(char) * (strlen(dest) + 1));
+				pswd = dest;
+				login = malloc(sizeof(char) * strlen(identifiant) + strlen(identifiant));
+				strcat(login,identifiant);
 				strcat(login," ");
-				strcat(login,dest);
-				state = isExist(login,state);
-				write(sockfd,"PASSWD",n); 
+				strcat(login,pswd);
+				printf("login apres ---->%s",login);
+				printf("errrrrreur -- %d\n",err);
+				err = isExist(login,state,err);
+				printf("\nerr ------+ %d\n",err);
+				if (err == -1){
+					write(sockfd,"WELC",4);
+					state++;
+				}
+				if(err>0 && err<3){
+					write(sockfd,"ERRPASSWD",9);
+				} 
+				if (err == 3){
+					write(sockfd,"BYE",3);
+					err = 0;
+					state =0;
+				}
+				reinitialiseBuf(buf);
+			}
+			else if(state == 3){
+				//SOCKET2
 			} else {
-				buf[n]='\0';
 				printf("envoi dans socket de ? ? ? ? \n");
-				write(sockfd,"? ? ? ?",n);
+				write(sockfd,"? ? ? ?",7);
+				reinitialiseBuf(buf);
 			}
 		} else {
 			printf("ERREUR");
@@ -122,24 +152,15 @@ void  str_echo(int sockfd)
 	if(dest !=NULL){
 		free(dest);
 	}
+	if(identifiant !=NULL){
+		free(identifiant);
+	}
+	if(pswd !=NULL){
+		free(pswd);
+	}
+	if(login !=NULL){
+		free(login);
+	}
+	reinitialiseBuf(buf);
 	printf("total données reçues: %d\n",totaldonnees);
 }
-
-int isExist(char *login,int state) {
-		int fd;
-		int n=0;
-		char buf[100]="{\0}";
-		fd=open("log.txt",O_RDONLY);
-		if (fd<0) {
-			printf("Erreur d'ouverture du fichier\n");
-			exit(-1);
-		} else {
-			printf("Log : %s",login);
-			while((n=read(fd,buf,100))>0) {
-				buf[n]='\0';
-				printf("buf => %s\n",buf);
-				//write(sockfd,buf,n);
-			}
-		}
-		return state =0;
-	}

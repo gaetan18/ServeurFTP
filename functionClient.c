@@ -11,7 +11,7 @@
 bool commandLocal(char* command) {
 
   if (strcmp(command,"ls") == 0) { //Verif LS
-    return 1
+    return 1;
   }else if (strcmp(command,"pwd") == 0) { //PWD
     return 1;
   }else if (strcmp(command,"cd") == 0) { //CD 
