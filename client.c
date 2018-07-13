@@ -17,16 +17,16 @@
 
 void str_cli(int, int);
 
-int
+int welcome = 0;
 main(int argc, char **argv)
 {
 	int	sockfd;
 	struct sockaddr_in servaddr;
 	int fd;
 
-	if (argc != 4)
+	if (argc != 3)
 		{
-		printf("usage: client <IPaddress> <Port> <source_données>\n");
+		printf("usage: client <IPaddress> <Port> \n");
 		exit(-1);
 		}
 
@@ -39,52 +39,10 @@ main(int argc, char **argv)
 	inet_pton(AF_INET, argv[1], &servaddr.sin_addr);
 
 	connect(sockfd, (struct sockaddr*) &servaddr, sizeof(servaddr));
+	fd=STDIN_FILENO;
 
-	if (strcmp(argv[3],"stdin")!=0)
-		{
-		fd=open(argv[3],O_RDONLY);
-		if (fd<0)
-			{
-			printf("Erreur d'ouverture du fichier %s\n",argv[3]);
-			exit(-1);
-			}
-		}
-	else fd=STDIN_FILENO;
-
-
-	char input[100];
-
-	while(1) {
-				printf("votre Commande : ");
-				scanf("%[^\n]%*c", input);
-				if(!strcmp(input, "exit")) {
-						break;
-				} else if(commandLocal(input)) {
-					executCommandLocal(input);
-				} /*else if (is_remote_cmd(input)) {
-					sendMessage(serverId, input);
-
-					if(!strcmp(input, "rls")) {
-						char waitInput[1000];
-						while (strcmp(waitInput, "\n")) {
-							printf("\n");
-							waitMessage(serverId, waitInput);
-						}
-						printf("\n");
-					} else if(!strcmp(input, "rcd")) {
-						char waitInput[50];
-						waitMessage(serverId, waitInput);
-					}
-				} */else if (strcmp(input, "")) {
-					printf("UNKNOW CMD : %s\n", input);
-				}
-				printf("\n");
-				}
-
-
-/*
 	str_cli(fd, sockfd);
-	exit(0);*/
+	exit(0);
 }
 
 void str_cli(int fd, int sockfd)
@@ -135,7 +93,22 @@ for ( ; ; )
 			exit(-1);
 			}
 		recvline[n]='\0';
-		printf("receive -> %s",recvline);
+		if(strcmp(recvline,"WELC\0") == 0 || welcome == 1){
+			welcome = 1;
+			char input[100];
+			while(1) {
+				printf("votre Commande : ");
+				scanf("%[^\n]%*c", input);
+				if(!strcmp(input, "exit")) {
+					break;
+				} else if(commandLocal(input)) {
+					executCommandLocal(input);
+				} else if (strcmp(input, "")) {
+					printf("UNKNOW CMD : %s\n", input);
+				}
+				printf("\n");
+			}
+		}
 		write(STDOUT_FILENO,recvline,strlen(recvline));
 		printf("\n");
 		}
