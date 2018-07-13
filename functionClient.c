@@ -42,8 +42,8 @@ void executCommandLocal(char* command){
 
     }else if (strcmp(command,"rm") == 0) { //RM
       printf("Quel  fichier à supprimer : ");
-      	char* file[50];
-		writeMessage(file);
+      	char file[50];
+		    writeMessage(file);
 
 		if(unlink(file) == 0) {
 			printf("Fichier %s supprimé !\n", file);
@@ -51,9 +51,9 @@ void executCommandLocal(char* command){
 			printf("Fichier %s non supprimé !\n", file);
 		}
     }else if (strcmp(command,"cd") == 0) { //CD
-    	char* path[50];
+    	char path[50];
       	printf("Quel Répertoire souhaitait vous allez ? : ");
-		writeMessage(path);
+		    writeMessage(path);
       	chdir(path);
 
     }
