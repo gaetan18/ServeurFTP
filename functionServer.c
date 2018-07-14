@@ -9,25 +9,59 @@
 #include "tools.c"
 
 
-bool commandServer(char* command) {
+void executCommandServer(int client, char* command){
+  printf("je suis dans executCommandServer\n");
+  if (strcmp(command, "rcd") == 0) {
+    char* question = "Quel Répertoire souhaitait vous allez ? ";
+    write(client,"question",sizeof(question));
+    while(1){
+      read(client,command,500);
+      if (strcmp(command, "rcd") !=0)
+      {
+        if (chdir(command))
+        {
+           write(client,"cd ok",5);
+        }
+        else{
+          write(client,"cd nok",6);
+        }
 
-  if (strcmp(command,"rls") == 0) { //Verif LS
-    return 1;
-  }else if (strcmp(command,"rpwd") == 0) { //PWD
-    return 1;
-  }else if (strcmp(command,"rcd") == 0) { //CD 
-    return 1;
-  }else if (strcmp(command,"rm") == 0) { //RM
-  	return 1;
-  }else{
-  	printf("La Commande n'existe pas");
-    return 0;
+      }
+    }
+    
   }
-}
+  else if (strcmp(command, "rls") == 0 || strcmp(command, "rpwd") == 0)
+  {
+    /*printf("je suis dans executCommandServer pour : %s\n",command);
+    char result[1000];*/
+    int stdout_standard = dup(STDOUT_FILENO);
+    /*int log_file = open("tmplog", O_CREAT | O_TRUNC | O_WRONLY, 0644);
+    dup2(log_file, STDOUT_FILENO);*/
 
-void executCommandServer(char* command){
-	
+    dup2(client, STDOUT_FILENO);
 
+    int pid=fork();
+    if (pid == 0){
+
+      if (strcmp(command, "rls") == 0){
+         execlp("ls", "ls", NULL);
+      }
+      if (strcmp(command, "rpwd") == 0){
+         execlp("pwd", "pwd", NULL);
+      }
+
+    } else{
+        wait(&pid);
+    }
+
+    dup2(stdout_standard, STDOUT_FILENO);
+    close(stdout_standard);
+    //close(log_file);
+
+   
+   //remove("tmplog");
+
+  }
 }
 
 

@@ -93,24 +93,35 @@ for ( ; ; )
 			exit(-1);
 			}
 		recvline[n]='\0';
+		write(STDOUT_FILENO,recvline,strlen(recvline));
+		printf("\n");
 		if(strcmp(recvline,"WELC\0") == 0 || welcome == 1){
 			welcome = 1;
 			char input[100];
 			while(1) {
 				printf("votre Commande : ");
 				scanf("%[^\n]%*c", input);
+				//system("clear");
 				if(!strcmp(input, "exit")) {
-					break;
+					return;
 				} else if(commandLocal(input)) {
 					executCommandLocal(input);
+				} else if (commandServer(input)) {
+					write(sockfd, input, sizeof(input));
 				} else if (strcmp(input, "")) {
 					printf("UNKNOW CMD : %s\n", input);
 				}
-				printf("\n");
+				if (commandServer(input))
+				{
+					if (read(sockfd, recvline, MAXLINE)>0)
+					{
+					write(STDOUT_FILENO,recvline,strlen(recvline));
+					}
+					printf("\n");
+				}
+				
 			}
 		}
-		write(STDOUT_FILENO,recvline,strlen(recvline));
-		printf("\n");
 		}
 
 	if (FD_ISSET(fd, &rset)) // Evènement sur l'entrée de données

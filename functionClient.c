@@ -18,10 +18,8 @@ bool commandLocal(char* command) {
     return 1;
   }else if (strcmp(command,"rm") == 0) { //RM
   	return 1;
-  }else{
-  	printf("La Commande n'existe pas");
-    return 0;
   }
+  return 0;
 }
 
 

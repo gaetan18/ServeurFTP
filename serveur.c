@@ -81,73 +81,85 @@ void  str_echo(int sockfd)
 	printf("buff %s",buf);
 	int nbyte = strlen(buf);
 	while((n=read(sockfd,buf,500))>0)
-	{
-		printf("n = %d\n",n);
-		printf("BUF ------- > %s \n",buf);
-		printf("LEN ---> %d \n",(int)strlen(buf));
-		tok = malloc(sizeof(char) * n);
-		tok = strtok(buf,ch);
-		printf("\n\ntoken -> %s taille -> %d\n",tok,(int)strlen(tok));
-		printf("socketFD -> %d\n",sockfd);
-		printf("TOK ------- > %s\n",buf);
-		dest = malloc(sizeof(char) * (strlen(tok)));
-		strncpy(dest,tok,strlen(tok)-1);
-		if(tok != NULL){
-			printf("tok est alloué \n");
+	{	
+		if (commandServer(buf))
+		{
+			printf("recu: %s\n",buf);
+			executCommandServer(sockfd, buf);
+			reinitialiseBuf(buf);
 		}
-		printf("\nstrcpy -> dest -> %s taille-> %d\n",dest,(int)strlen(dest));
-		if(tok !=NULL && dest !=NULL){
-			if(strcmp(dest,"BONJ") == 0 && state == 0){
-				printf("client a envoye - -%s\n",buf);
-				write(sockfd,"WHO",3);
-				reinitialiseBuf(buf);
-				++state;
-			}  
-			else if(state == 1){
-				printf("client a envoye - - - %s\n",dest);
-				identifiant = malloc(sizeof(char) * (strlen(dest)));
-				identifiant = dest;
-				write(sockfd,"PASSWD",6);
-				reinitialiseBuf(buf);
-				++state;
-			} 
-			else if(state == 2){
-				printf("client a envoye - - - %s\n",dest);
-				pswd = malloc(sizeof(char) * (strlen(dest) + 1));
-				pswd = dest;
-				login = malloc(sizeof(char) * strlen(identifiant) + strlen(identifiant));
-				strcat(login,identifiant);
-				strcat(login," ");
-				strcat(login,pswd);
-				printf("login apres ---->%s",login);
-				printf("errrrrreur -- %d\n",err);
-				err = isExist(login,state,err);
-				printf("\nerr ------+ %d\n",err);
-				if (err == -1){
-					write(sockfd,"WELC",4);
-					state++;
-				}
-				if(err>0 && err<3){
-					write(sockfd,"ERRPASSWD",9);
+		else{
+			printf("n = %d\n",n);
+			printf("BUF ------- > %s \n",buf);
+			printf("LEN ---> %d \n",(int)strlen(buf));
+			tok = malloc(sizeof(char) * n);
+			tok = strtok(buf,ch);
+			printf("\n\ntoken -> %s taille -> %d\n",tok,(int)strlen(tok));
+			printf("socketFD -> %d\n",sockfd);
+			printf("TOK ------- > %s\n",buf);
+			dest = malloc(sizeof(char) * (strlen(tok)));
+			strncpy(dest,tok,strlen(tok)-1);
+			if(tok != NULL){
+				printf("tok est alloué \n");
+			}
+			printf("\nstrcpy -> dest -> %s taille-> %d\n",dest,(int)strlen(dest));
+			if(tok !=NULL && dest !=NULL){
+				if(strcmp(dest,"BONJ") == 0 && state == 0){
+					printf("client a envoye - -%s\n",buf);
+					write(sockfd,"WHO",3);
+					reinitialiseBuf(buf);
+					++state;
+				}  
+				else if(state == 1){
+					printf("client a envoye - - - %s\n",dest);
+					identifiant = malloc(sizeof(char) * (strlen(dest)));
+					identifiant = dest;
+					write(sockfd,"PASSWD",6);
+					reinitialiseBuf(buf);
+					++state;
 				} 
-				if (err == 3){
-					write(sockfd,"BYE",3);
-					err = 0;
-					state =0;
+				else if(state == 2){
+					printf("client a envoye - - - %s\n",dest);
+					pswd = malloc(sizeof(char) * (strlen(dest) + 1));
+					pswd = dest;
+					login = malloc(sizeof(char) * strlen(identifiant) + strlen(identifiant));
+					strcat(login,identifiant);
+					strcat(login," ");
+					strcat(login,pswd);
+					printf("login apres ---->%s",login);
+					printf("errrrrreur -- %d\n",err);
+					err = isExist(login,state,err);
+					printf("\nerr ------+ %d\n",err);
+					if (err == -1){
+						write(sockfd,"WELC",4);
+						state++;
+					}
+					if(err>0 && err<3){
+						write(sockfd,"ERRPASSWD",9);
+					} 
+					if (err == 3){
+						write(sockfd,"BYE",3);
+						err = 0;
+						state =0;
+					}
+					reinitialiseBuf(buf);
 				}
-				reinitialiseBuf(buf);
-			}
-			else if(state == 3){
-				//SOCKET2
+				else if(state == 3){
+					//SOCKET2
+					printf("passer par ici");
+
+				} else {
+					printf("envoi dans socket de ? ? ? ? \n");
+					write(sockfd,"? ? ? ?",7);
+					reinitialiseBuf(buf);
+				}
 			} else {
-				printf("envoi dans socket de ? ? ? ? \n");
-				write(sockfd,"? ? ? ?",7);
-				reinitialiseBuf(buf);
+				printf("ERREUR");
 			}
-		} else {
-			printf("ERREUR");
-		}
-		printf("state -> %d",state);		
+			printf("state -> %d",state);
+
+		}		
+		
 	}
 	if(dest !=NULL){
 		free(dest);
